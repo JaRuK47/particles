@@ -12,10 +12,7 @@ namespace Particles
 {
     public partial class Form1 : Form
     {
-        List<Particle> particles = new List<Particle>();
-
-        private int MousePositionX = 0;
-        private int MousePositionY = 0;
+        Emitter emitter;
 
         public Form1()
         {
@@ -23,72 +20,48 @@ namespace Particles
 
             picDisplay.Image = new Bitmap(picDisplay.Width, picDisplay.Height);
 
-            // генерирую 500 частиц
-            for (var i = 0; i < 500; ++i)
-            {
-                var particle = new Particle();
-                // переношу частицы в центр изображения
-                particle.X = picDisplay.Image.Width / 2;
-                particle.Y = picDisplay.Image.Height / 2;
-                // добавляю список
-                particles.Add(particle);
-            }
-        }
 
-        private void UpdateState()
-        {
-            foreach (var particle in particles)
+            emitter = new TopEmitter
             {
-                particle.Life -= 1; // уменьшаю здоровье
-                                    // если здоровье кончилось
-                if (particle.Life < 0)
-                {
-                    // восстанавливаю здоровье
-                    particle.Life = 20 + Particle.rand.Next(100);
-                    // перемещаю частицу в центр
-                    particle.X = MousePositionX;
-                    particle.Y = MousePositionY;
+                Width = picDisplay.Width,
+                GravitationY = 0.25f
+            };
 
-                    particle.Direction = Particle.rand.Next(360);
-                    particle.Speed = 1 + Particle.rand.Next(10);
-                    particle.Radius = 2 + Particle.rand.Next(10);
-                }
-                else
-                {
-                    // а это наш старый код
-                    var directionInRadians = particle.Direction / 180 * Math.PI;
-                    particle.X += (float)(particle.Speed * Math.Cos(directionInRadians));
-                    particle.Y -= (float)(particle.Speed * Math.Sin(directionInRadians));
-                }
-            }
-        }
-
-        // функция рендеринга
-        private void Render(Graphics g)
-        {
-            // утащили сюда отрисовку частиц
-            foreach (var particle in particles)
+            emitter.impactPoints.Add(new GravityPoint
             {
-                particle.Draw(g);
-            }
+                X = (float)(picDisplay.Width * 0.25),
+                Y = picDisplay.Height / 2
+            });
+
+            emitter.impactPoints.Add(new AntiGravityPoint
+            {
+                X = picDisplay.Width / 2,
+                Y = picDisplay.Height / 2
+            });
+
+            emitter.impactPoints.Add(new GravityPoint
+            {
+                X = (float)(picDisplay.Width * 0.75),
+                Y = picDisplay.Height / 2
+            });
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            UpdateState(); // каждый тик обновляем систему
+            emitter.UpdateState(); // каждый тик обновляем систему
 
             using (var g = Graphics.FromImage(picDisplay.Image))
             {
-                g.Clear(Color.White);
-                Render(g); // рендерим систему
+                g.Clear(Color.Black); // А ЕЩЕ ЧЕРНЫЙ ФОН СДЕЛАЮ
+                emitter.Render(g);
             }
             picDisplay.Invalidate();
         }
 
         private void picDisplay_MouseMove(object sender, MouseEventArgs e)
         {
-            MousePositionX = e.X;
-            MousePositionY = e.Y;
+            emitter.MousePositionX = e.X;
+            emitter.MousePositionY = e.Y;
         }
     }
 }
