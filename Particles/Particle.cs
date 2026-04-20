@@ -23,11 +23,9 @@ namespace Particles
         // конструктор по умолчанию будет создавать кастомную частицу
         public Particle()
         {
-            // я не трогаю координаты X, Y потому что хочу, чтобы все частицы возникали из одного места
             var direction = (double)rand.Next(360);
             var speed = 1 + rand.Next(10);
 
-            // рассчитываем вектор скорости
             SpeedX = (float)(Math.Cos(direction / 180 * Math.PI) * speed);
             SpeedY = -(float)(Math.Sin(direction / 180 * Math.PI) * speed);
             Radius = 2 + rand.Next(10);
@@ -35,17 +33,12 @@ namespace Particles
         }
         public virtual void Draw(Graphics g)
         {
-            // рассчитываем коэффициент прозрачности по шкале от 0 до 1.0
             float k = Math.Min(1f, Life / 100);
-            // рассчитываем значение альфа канала в шкале от 0 до 255
-            // по аналогии с RGB, он используется для задания прозрачности
             int alpha = (int)(k * 255);
 
-            // создаем цвет из уже существующего, но привязываем к нему еще и значение альфа канала
             var color = Color.FromArgb(alpha, Color.Black);
             var b = new SolidBrush(color);
 
-            // остальное все так же
             g.FillEllipse(b, X - Radius, Y - Radius, Radius * 2, Radius * 2);
 
             b.Dispose();
@@ -69,12 +62,10 @@ namespace Particles
             );
         }
 
-        // ну и отрисовку перепишем
         public override void Draw(Graphics g)
         {
             float k = Math.Min(1f, Life / 100);
 
-            // так как k уменьшается от 1 до 0, то порядок цветов обратный
             var color = MixColor(ToColor, FromColor, k);
             var b = new SolidBrush(color);
 

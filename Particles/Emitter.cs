@@ -38,6 +38,14 @@ namespace Particles
 
         public void UpdateState()
         {
+            foreach (var point in impactPoints)
+            {
+                if (point is RadarPoint radar)
+                {
+                    radar.ResetCounter();
+                }
+            }
+
             int particlesToCreate = ParticlesPerTick;
 
             foreach (var particle in particles)
@@ -46,8 +54,7 @@ namespace Particles
                 {
                     if (particlesToCreate > 0)
                     {
-                        /* у нас как сброс частицы равносилен созданию частицы */
-                        particlesToCreate -= 1; // поэтому уменьшаем счётчик созданных частиц на 1
+                        particlesToCreate -= 1;
                         ResetParticle(particle);
                     }
                 }
@@ -61,7 +68,6 @@ namespace Particles
                         point.ImpactParticle(particle);
                     }
 
-                    // а это наш старый код
                     particle.SpeedX += GravitationX;
                     particle.SpeedY += GravitationY;
                 }
@@ -77,8 +83,6 @@ namespace Particles
 
         public void Render(Graphics g)
         {
-            // ну тут так и быть уж сам впишу...
-            // это то же самое что на форме в методе Render
             foreach (var particle in particles)
             {
                 particle.Draw(g);
@@ -121,18 +125,17 @@ namespace Particles
 
     public class TopEmitter : Emitter
     {
-        public int Width; // длина экрана
+        public int Width;
 
         public override void ResetParticle(Particle particle)
         {
-            base.ResetParticle(particle); // вызываем базовый сброс частицы, там жизнь переопределяется и все такое
+            base.ResetParticle(particle);
 
-            // а теперь тут уже подкручиваем параметры движения
-            particle.X = Particle.rand.Next(Width); // позиция X -- произвольная точка от 0 до Width
-            particle.Y = 0;  // ноль -- это верх экрана 
+            particle.X = Particle.rand.Next(Width); 
+            particle.Y = 0;
 
-            particle.SpeedY = 1; // падаем вниз по умолчанию
-            particle.SpeedX = Particle.rand.Next(-2, 2); // разброс влево и вправа у частиц 
+            particle.SpeedY = 1;
+            particle.SpeedX = Particle.rand.Next(-2, 2);
         }
     }
 }

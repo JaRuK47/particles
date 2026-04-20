@@ -9,14 +9,11 @@ namespace Particles
 {
     public abstract class IImpactPoint
     {
-        public float X; // ну точка же, вот и две координаты
+        public float X;
         public float Y;
 
-        // абстрактный метод с помощью которого будем изменять состояние частиц
-        // например притягивать
         public abstract void ImpactParticle(Particle particle);
 
-        // базовый класс для отрисовки точечки
         public virtual void Render(Graphics g)
         {
             g.FillEllipse(
@@ -31,9 +28,8 @@ namespace Particles
 
     public class GravityPoint : IImpactPoint
     {
-        public int Power = 100; // сила притяжения
+        public int Power = 100;
 
-        // а сюда по сути скопировали с минимальными правками то что было в UpdateState
         public override void ImpactParticle(Particle particle)
         {
             float gX = X - particle.X;
@@ -41,7 +37,6 @@ namespace Particles
             double r = Math.Sqrt(gX * gX + gY * gY); // считаем расстояние от центра точки до центра частицы
             if (r + particle.Radius < Power / 2) // если частица оказалось внутри окружности
             {
-                // то притягиваем ее
                 float r2 = (float)Math.Max(100, gX * gX + gY * gY);
                 particle.SpeedX += gX * Power / r2;
                 particle.SpeedY += gY * Power / r2;
@@ -50,7 +45,6 @@ namespace Particles
 
         public override void Render(Graphics g)
         {
-            // буду рисовать окружность с диаметром равным Power
             g.DrawEllipse(
                    new Pen(Color.Red),
                    X - Power / 2,
@@ -63,23 +57,19 @@ namespace Particles
             stringFormat.Alignment = StringAlignment.Center;
             stringFormat.LineAlignment = StringAlignment.Center;
 
-            // обязательно выносим текст и шрифт в переменные
             var text = $"Я гравитон\nc силой {Power}";
             var font = new Font("Verdana", 10);
 
-            // вызываем MeasureString, чтобы померить размеры текста
             var size = g.MeasureString(text, font);
 
-            // рисуем подложнку под текст
             g.FillRectangle(
                 new SolidBrush(Color.Red),
-                X - size.Width / 2, // так как я выравнивал текст по центру то подложка должна быть центрирована относительно X,Y
+                X - size.Width / 2,
                 Y - size.Height / 2,
                 size.Width,
                 size.Height
             );
 
-            // ну и текст рисую уже на базе переменных
             g.DrawString(
                 text,
                 font,
@@ -93,17 +83,264 @@ namespace Particles
 
     public class AntiGravityPoint : IImpactPoint
     {
-        public int Power = 100; // сила отторжения
+        public int Power = 100;
 
-        // а сюда по сути скопировали с минимальными правками то что было в UpdateState
         public override void ImpactParticle(Particle particle)
         {
             float gX = X - particle.X;
             float gY = Y - particle.Y;
             float r2 = (float)Math.Max(100, gX * gX + gY * gY);
 
-            particle.SpeedX -= gX * Power / r2; // тут минусики вместо плюсов
-            particle.SpeedY -= gY * Power / r2; // и тут
+            particle.SpeedX -= gX * Power / r2; 
+            particle.SpeedY -= gY * Power / r2;
+        }
+    }
+
+    public class ReflectorPoint : IImpactPoint
+    {
+        public int Radius = 50; 
+        public int Power = 10; 
+
+        public override void ImpactParticle(Particle particle)
+        {
+            float dx = particle.X - X;
+            float dy = particle.Y - Y;
+            float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+
+            if (distance + particle.Radius < Radius)
+            {
+                float nx = dx / distance;
+                float ny = dy / distance;
+
+                float targetDistance = Radius - particle.Radius - 1;
+                particle.X = X + nx * targetDistance;
+                particle.Y = Y + ny * targetDistance;
+
+                particle.SpeedX += nx * Power;
+                particle.SpeedY += ny * Power;
+            }
+            else if (Math.Abs(distance + particle.Radius - Radius) < 5)
+            {
+                float nx = dx / distance;
+                float ny = dy / distance;
+
+                float vx = particle.SpeedX;
+                float vy = particle.SpeedY;
+                float dot = vx * nx + vy * ny;
+
+                if (dot < 0) 
+                {
+                    particle.SpeedX = vx - 2 * dot * nx;
+                    particle.SpeedY = vy - 2 * dot * ny;
+                }
+            }
+        }
+
+        public override void Render(Graphics g)
+        {
+            using (var pen = new Pen(Color.Cyan, 2))
+            using (var fillBrush = new SolidBrush(Color.FromArgb(50, Color.Cyan)))
+            {
+                g.DrawEllipse(pen, X - Radius, Y - Radius, Radius * 2, Radius * 2);
+                g.FillEllipse(fillBrush, X - Radius, Y - Radius, Radius * 2, Radius * 2);
+            }
+        }
+    }
+
+    public class TeleportPoint : IImpactPoint
+    {
+        public int Radius = 50; 
+        public float ExitX; 
+        public float ExitY; 
+        public float ExitDirection = 0; 
+        public float ExitSpeedMultiplier = 1.0f; 
+        public bool IsEntrance = true; 
+
+        public override void ImpactParticle(Particle particle)
+        {
+            if (!IsEntrance) return; 
+
+ 
+            float dx = particle.X - X;
+            float dy = particle.Y - Y;
+            float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+
+            
+            if (distance + particle.Radius < Radius)
+            {
+                
+                particle.X = ExitX;
+                particle.Y = ExitY;
+
+                
+                if (ExitDirection != 0 || ExitSpeedMultiplier != 1.0f)
+                {
+                    float currentSpeed = (float)Math.Sqrt(particle.SpeedX * particle.SpeedX + particle.SpeedY * particle.SpeedY);
+
+         
+                    float radian = ExitDirection * (float)Math.PI / 180;
+                    particle.SpeedX = (float)Math.Cos(radian) * currentSpeed * ExitSpeedMultiplier;
+                    particle.SpeedY = -(float)Math.Sin(radian) * currentSpeed * ExitSpeedMultiplier;
+                }
+            }
+        }
+
+        public override void Render(Graphics g)
+        {
+            if (IsEntrance)
+            {
+                
+                using (var pen = new Pen(Color.Red, 2))
+                using (var fillBrush = new SolidBrush(Color.FromArgb(80, Color.Red)))
+                {
+                    g.DrawEllipse(pen, X - Radius, Y - Radius, Radius * 2, Radius * 2);
+                    g.FillEllipse(fillBrush, X - Radius, Y - Radius, Radius * 2, Radius * 2);
+                }
+            }
+            else
+            {
+                using (var pen = new Pen(Color.Green, 2))
+                using (var fillBrush = new SolidBrush(Color.FromArgb(80, Color.Green)))
+                {
+                    g.DrawEllipse(pen, ExitX - 30, ExitY - 30, 60, 60);
+                    g.FillEllipse(fillBrush, ExitX - 30, ExitY - 30, 60, 60);
+                }
+
+                DrawDirectionArrow(g);
+            }
+        }
+
+        private void DrawDirectionArrow(Graphics g)
+        {
+            if (ExitDirection == 0) return;
+
+            float radian = ExitDirection * (float)Math.PI / 180;
+            float arrowLength = 40;
+            float arrowX = ExitX + (float)Math.Cos(radian) * arrowLength;
+            float arrowY = ExitY - (float)Math.Sin(radian) * arrowLength;
+
+            using (var pen = new Pen(Color.Yellow, 3))
+            {
+                g.DrawLine(pen, ExitX, ExitY, arrowX, arrowY);
+
+                float angle = (float)Math.PI / 6;
+                float arrowSize = 10;
+
+                float arrowX1 = arrowX - (float)Math.Cos(radian - angle) * arrowSize;
+                float arrowY1 = arrowY + (float)Math.Sin(radian - angle) * arrowSize;
+                float arrowX2 = arrowX - (float)Math.Cos(radian + angle) * arrowSize;
+                float arrowY2 = arrowY + (float)Math.Sin(radian + angle) * arrowSize;
+
+                g.DrawLine(pen, arrowX, arrowY, arrowX1, arrowY1);
+                g.DrawLine(pen, arrowX, arrowY, arrowX2, arrowY2);
+            }
+        }
+    }
+
+    public class RadarPoint : IImpactPoint
+    {
+        public int Radius = 80;
+        private int particlesCount = 0;
+
+        private Dictionary<Particle, (Color FromColor, Color ToColor)> originalColors = new Dictionary<Particle, (Color, Color)>();
+
+        public override void ImpactParticle(Particle particle)
+        {
+            float dx = particle.X - X;
+            float dy = particle.Y - Y;
+            float distance = (float)Math.Sqrt(dx * dx + dy * dy);
+
+            if (distance + particle.Radius < Radius)
+            {
+                particlesCount++;
+
+                if (particle is ParticleColorful colorfulParticle)
+                {
+                    if (!originalColors.ContainsKey(particle))
+                    {
+                        originalColors[particle] = (colorfulParticle.FromColor, colorfulParticle.ToColor);
+                    }
+
+                    colorfulParticle.FromColor = Color.Lime;
+                    colorfulParticle.ToColor = Color.Yellow;
+                }
+            }
+            else
+            {
+                if (particle is ParticleColorful colorfulParticle && originalColors.ContainsKey(particle))
+                {
+                    var original = originalColors[particle];
+                    colorfulParticle.FromColor = original.FromColor;
+                    colorfulParticle.ToColor = original.ToColor;
+                    originalColors.Remove(particle);
+                }
+            }
+        }
+
+        public void ResetCounter()
+        {
+            particlesCount = 0;
+
+            var deadParticles = originalColors.Keys.Where(p => p.Life <= 0).ToList();
+            foreach (var particle in deadParticles)
+            {
+                originalColors.Remove(particle);
+            }
+        }
+
+        public override void Render(Graphics g)
+        {
+            using (var pen = new Pen(Color.Lime, 2))
+            {
+                pen.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+                g.DrawEllipse(pen, X - Radius, Y - Radius, Radius * 2, Radius * 2);
+            }
+
+            using (var fillBrush = new SolidBrush(Color.FromArgb(40, Color.Lime)))
+            {
+                g.FillEllipse(fillBrush, X - Radius, Y - Radius, Radius * 2, Radius * 2);
+            }
+
+            using (var pen = new Pen(Color.FromArgb(100, Color.Lime), 1))
+            {
+                g.DrawLine(pen, X - Radius, Y, X + Radius, Y);
+                g.DrawLine(pen, X, Y - Radius, X, Y + Radius);
+            }
+
+
+            float angle = (float)(DateTime.Now.Millisecond / 1000.0 * Math.PI * 2);
+            float scanX = X + (float)Math.Cos(angle) * Radius;
+            float scanY = Y + (float)Math.Sin(angle) * Radius;
+            using (var scanPen = new Pen(Color.FromArgb(200, Color.Lime), 2))
+            {
+                g.DrawLine(scanPen, X, Y, scanX, scanY);
+            }
+
+            var stringFormat = new StringFormat();
+            stringFormat.Alignment = StringAlignment.Center;
+            stringFormat.LineAlignment = StringAlignment.Center;
+
+            string text = $"РАДАР\n{particlesCount} частиц";
+            var font = new Font("Verdana", 10, FontStyle.Bold);
+            var size = g.MeasureString(text, font);
+
+            using (var bgBrush = new SolidBrush(Color.FromArgb(180, Color.Black)))
+            using (var textBrush = new SolidBrush(Color.Lime))
+            {
+                g.FillRectangle(bgBrush,
+                    X - size.Width / 2,
+                    Y - size.Height / 2 - 15,
+                    size.Width,
+                    size.Height);
+
+                g.DrawString(text, font, textBrush, X, Y - 15, stringFormat);
+            }
+
+            int pulse = (int)(Math.Sin(DateTime.Now.Millisecond / 500.0 * Math.PI) * 5) + 5;
+            using (var pulseBrush = new SolidBrush(Color.FromArgb(100, Color.Lime)))
+            {
+                g.FillEllipse(pulseBrush, X - pulse, Y - pulse, pulse * 2, pulse * 2);
+            }
         }
     }
 }
