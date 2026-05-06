@@ -10,13 +10,14 @@ namespace Particles
     public class Emitter
     {
         public int ParticlesCount = 500;
+        public int MaxParticles = 500;
 
         public List<IImpactPoint> impactPoints = new List<IImpactPoint>();
 
         public float GravitationX = 0;
         public float GravitationY = 1;
 
-        List<Particle> particles = new List<Particle>();
+        public List<Particle> particles = new List<Particle>();
         public int MousePositionX;
         public int MousePositionY;
 
@@ -28,7 +29,7 @@ namespace Particles
         public int SpeedMax = 10; // начальная максимальная скорость движения частицы
         public int RadiusMin = 2; // минимальный радиус частицы
         public int RadiusMax = 10; // максимальный радиус частицы
-        public int LifeMin = 20; // минимальное время жизни частицы
+        public int LifeMin = 80; // минимальное время жизни частицы
         public int LifeMax = 100; // максимальное время жизни частицы
 
         public int ParticlesPerTick = 1;
@@ -38,6 +39,7 @@ namespace Particles
 
         public void UpdateState()
         {
+
             foreach (var point in impactPoints)
             {
                 if (point is RadarPoint radar)
@@ -48,20 +50,27 @@ namespace Particles
 
             int particlesToCreate = ParticlesPerTick;
 
-            foreach (var particle in particles)
+
+            for (int i = 0; i < particles.Count; i++)
             {
+                var particle = particles[i];
+
                 if (particle.Life < 0)
                 {
+
                     if (particlesToCreate > 0)
                     {
-                        particlesToCreate -= 1;
+                        particlesToCreate--;
                         ResetParticle(particle);
+
                     }
                 }
                 else
                 {
+
                     particle.X += particle.SpeedX;
                     particle.Y += particle.SpeedY;
+                    particle.Life--;
 
                     foreach (var point in impactPoints)
                     {
@@ -72,9 +81,11 @@ namespace Particles
                     particle.SpeedY += GravitationY;
                 }
             }
-            while (particlesToCreate >= 1)
+
+
+            while (particlesToCreate > 0 && particles.Count < MaxParticles)
             {
-                particlesToCreate -= 1;
+                particlesToCreate--;
                 var particle = CreateParticle();
                 ResetParticle(particle);
                 particles.Add(particle);

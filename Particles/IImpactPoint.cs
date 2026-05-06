@@ -242,8 +242,6 @@ namespace Particles
         public int Radius = 80;
         private int particlesCount = 0;
 
-        private Dictionary<Particle, (Color FromColor, Color ToColor)> originalColors = new Dictionary<Particle, (Color, Color)>();
-
         public override void ImpactParticle(Particle particle)
         {
             float dx = particle.X - X;
@@ -253,39 +251,17 @@ namespace Particles
             if (distance + particle.Radius < Radius)
             {
                 particlesCount++;
-
-                if (particle is ParticleColorful colorfulParticle)
-                {
-                    if (!originalColors.ContainsKey(particle))
-                    {
-                        originalColors[particle] = (colorfulParticle.FromColor, colorfulParticle.ToColor);
-                    }
-
-                    colorfulParticle.FromColor = Color.Lime;
-                    colorfulParticle.ToColor = Color.Yellow;
-                }
+                particle.IsInRadar = true;
             }
             else
             {
-                if (particle is ParticleColorful colorfulParticle && originalColors.ContainsKey(particle))
-                {
-                    var original = originalColors[particle];
-                    colorfulParticle.FromColor = original.FromColor;
-                    colorfulParticle.ToColor = original.ToColor;
-                    originalColors.Remove(particle);
-                }
+                particle.IsInRadar = false;
             }
         }
 
         public void ResetCounter()
         {
             particlesCount = 0;
-
-            var deadParticles = originalColors.Keys.Where(p => p.Life <= 0).ToList();
-            foreach (var particle in deadParticles)
-            {
-                originalColors.Remove(particle);
-            }
         }
 
         public override void Render(Graphics g)
@@ -299,21 +275,6 @@ namespace Particles
             using (var fillBrush = new SolidBrush(Color.FromArgb(40, Color.Lime)))
             {
                 g.FillEllipse(fillBrush, X - Radius, Y - Radius, Radius * 2, Radius * 2);
-            }
-
-            using (var pen = new Pen(Color.FromArgb(100, Color.Lime), 1))
-            {
-                g.DrawLine(pen, X - Radius, Y, X + Radius, Y);
-                g.DrawLine(pen, X, Y - Radius, X, Y + Radius);
-            }
-
-
-            float angle = (float)(DateTime.Now.Millisecond / 1000.0 * Math.PI * 2);
-            float scanX = X + (float)Math.Cos(angle) * Radius;
-            float scanY = Y + (float)Math.Sin(angle) * Radius;
-            using (var scanPen = new Pen(Color.FromArgb(200, Color.Lime), 2))
-            {
-                g.DrawLine(scanPen, X, Y, scanX, scanY);
             }
 
             var stringFormat = new StringFormat();
@@ -334,12 +295,6 @@ namespace Particles
                     size.Height);
 
                 g.DrawString(text, font, textBrush, X, Y - 15, stringFormat);
-            }
-
-            int pulse = (int)(Math.Sin(DateTime.Now.Millisecond / 500.0 * Math.PI) * 5) + 5;
-            using (var pulseBrush = new SolidBrush(Color.FromArgb(100, Color.Lime)))
-            {
-                g.FillEllipse(pulseBrush, X - pulse, Y - pulse, pulse * 2, pulse * 2);
             }
         }
     }

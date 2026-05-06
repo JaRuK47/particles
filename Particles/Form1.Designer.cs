@@ -37,11 +37,15 @@
             this.lblSpreading = new System.Windows.Forms.Label();
             this.tbGraviton1 = new System.Windows.Forms.TrackBar();
             this.tbGraviton2 = new System.Windows.Forms.TrackBar();
+            this.label1 = new System.Windows.Forms.Label();
+            this.CountPointLabel = new System.Windows.Forms.Label();
+            this.tbCountPoint = new System.Windows.Forms.TrackBar();
             ((System.ComponentModel.ISupportInitialize)(this.picDisplay)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbDirection)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbSpreading)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbGraviton1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbGraviton2)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tbCountPoint)).BeginInit();
             this.SuspendLayout();
             // 
             // picDisplay
@@ -112,11 +116,40 @@
             this.tbGraviton2.TabIndex = 7;
             this.tbGraviton2.Scroll += new System.EventHandler(this.tbGraviton2_Scroll);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(706, 481);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(100, 16);
+            this.label1.TabIndex = 8;
+            this.label1.Text = "Кол-во частиц";
+            // 
+            // CountPointLabel
+            // 
+            this.CountPointLabel.AutoSize = true;
+            this.CountPointLabel.Location = new System.Drawing.Point(706, 511);
+            this.CountPointLabel.Name = "CountPointLabel";
+            this.CountPointLabel.Size = new System.Drawing.Size(0, 16);
+            this.CountPointLabel.TabIndex = 9;
+            // 
+            // tbCountPoint
+            // 
+            this.tbCountPoint.Location = new System.Drawing.Point(702, 555);
+            this.tbCountPoint.Maximum = 1000;
+            this.tbCountPoint.Name = "tbCountPoint";
+            this.tbCountPoint.Size = new System.Drawing.Size(104, 56);
+            this.tbCountPoint.TabIndex = 10;
+            this.tbCountPoint.Scroll += new System.EventHandler(this.tbCountPoint_Scroll);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(830, 623);
+            this.Controls.Add(this.tbCountPoint);
+            this.Controls.Add(this.CountPointLabel);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.tbGraviton2);
             this.Controls.Add(this.tbGraviton1);
             this.Controls.Add(this.lblSpreading);
@@ -131,6 +164,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.tbSpreading)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbGraviton1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.tbGraviton2)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.tbCountPoint)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -146,6 +180,9 @@
         private System.Windows.Forms.Label lblSpreading;
         private System.Windows.Forms.TrackBar tbGraviton1;
         private System.Windows.Forms.TrackBar tbGraviton2;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label CountPointLabel;
+        private System.Windows.Forms.TrackBar tbCountPoint;
     }
 }
 

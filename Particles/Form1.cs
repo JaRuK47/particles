@@ -52,15 +52,15 @@ namespace Particles
 
             reflector1 = new ReflectorPoint
             {
-                X = picDisplay.Width / 3,
+                X = picDisplay.Width / 5,
                 Y = picDisplay.Height / 2,
                 Radius = 60
             };
 
             reflector2 = new ReflectorPoint
             {
-                X = 2 * picDisplay.Width / 3,
-                Y = picDisplay.Height / 2,
+                X = 4 * picDisplay.Width / 5,
+                Y = picDisplay.Height / 4,
                 Radius = 60
             };
 
@@ -219,17 +219,28 @@ namespace Particles
         {
             if (e.Button == MouseButtons.Left)
             {
-                // Левой кнопкой - перемещаем вход телепорта
+
                 teleportEntrance.X = e.X;
                 teleportEntrance.Y = e.Y;
             }
             else if (e.Button == MouseButtons.Right)
             {
-                // Правой кнопкой - перемещаем выход телепорта
+
                 teleportExit.ExitX = e.X;
                 teleportExit.ExitY = e.Y;
                 teleportEntrance.ExitX = e.X;
                 teleportEntrance.ExitY = e.Y;
+            }
+        }
+
+        private void tbCountPoint_Scroll(object sender, EventArgs e)
+        {
+            emitter.MaxParticles = tbCountPoint.Value;
+            CountPointLabel.Text = $"{emitter.MaxParticles}";
+
+            while (emitter.particles.Count > emitter.MaxParticles)
+            {
+                emitter.particles.RemoveAt(emitter.particles.Count - 1);
             }
         }
     }
