@@ -34,8 +34,8 @@ namespace Particles
         {
             float gX = X - particle.X;
             float gY = Y - particle.Y;
-            double r = Math.Sqrt(gX * gX + gY * gY); // считаем расстояние от центра точки до центра частицы
-            if (r + particle.Radius < Power / 2) // если частица оказалось внутри окружности
+            double r = Math.Sqrt(gX * gX + gY * gY); 
+            if (r + particle.Radius < Power / 2) 
             {
                 float r2 = (float)Math.Max(100, gX * gX + gY * gY);
                 particle.SpeedX += gX * Power / r2;
